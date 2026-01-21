@@ -2,87 +2,153 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Thanh toán VietQR</title>
+
 <style>
+/* ========================================= */
+/* BASE LAYOUT — DÙNG CHUNG MỌI THEME        */
+/* ========================================= */
 body {
     margin: 0;
-    background: linear-gradient(180deg, #ff7a00, #000);
     font-family: Arial, sans-serif;
     color: white;
+    transition: 0.3s;
 }
 
-/* container */
 .wrap {
     max-width: 480px;
-    margin: 20px auto;
+    margin: auto;
     padding: 20px;
 }
 
-/* label */
 .label {
-    margin: 15px 0 5px;
+    margin: 15px 0 6px;
+    font-size: 17px;
     font-weight: bold;
 }
 
-/* input */
 input, select {
     width: 100%;
     padding: 14px;
+    font-size: 17px;
     border-radius: 10px;
     border: none;
-    font-size: 17px;
 }
 
-/* Bank logo grid */
+/* Bank icon grid */
 .bank-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    margin-top: 15px;
+    gap: 10px;
 }
-
 .bank-item {
-    background: rgba(255,255,255,0.1);
-    border: 2px solid transparent;
+    background: rgba(255,255,255,0.15);
     padding: 8px;
     border-radius: 12px;
     text-align: center;
+    border: 2px solid transparent;
     cursor: pointer;
     transition: 0.25s;
 }
-
 .bank-item img {
     width: 42px;
     height: 42px;
+    object-fit: contain;
 }
-
 .bank-item.active {
-    border-color: #ff8c1a;
-    background: rgba(255,255,255,0.25);
+    border-color: yellow;
+    background: rgba(255,255,255,0.35);
 }
 
 /* QR Box */
 .qr-box {
     margin-top: 25px;
-    background: rgba(255,255,255,0.1);
     padding: 20px;
     border-radius: 16px;
     text-align: center;
 }
 .qr-box img {
-    width: 240px;
+    width: 260px;
     background: white;
-    border-radius: 12px;
+    border-radius: 10px;
 }
+
+/* ========================================= */
+/* THEME SELECTOR (5 CHẤM)                   */
+/* ========================================= */
+.theme-bar {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 15px;
+}
+.theme-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid white;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: 0.25s;
+}
+.theme-dot.active {
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+/* ========================================= */
+/* 5 THEME                                   */
+/* ========================================= */
+
+/* THEME 1 — ĐEN CAM (ICT HUB) */
+.theme-1 {
+    background: linear-gradient(180deg, #ff7a00, #000);
+}
+.theme-1 .qr-box { background: rgba(255,255,255,0.1); }
+
+/* THEME 2 — TRẮNG XANH NGÂN HÀNG */
+.theme-2 {
+    background: linear-gradient(180deg, #ffffff, #0099ff);
+}
+.theme-2 body, .theme-2 .label { color: black !important; }
+.theme-2 .qr-box { background: rgba(255,255,255,0.7); }
+
+/* THEME 3 — ĐEN NEON XANH */
+.theme-3 {
+    background: linear-gradient(180deg, #001, #0f0);
+}
+.theme-3 .qr-box { background: rgba(0,0,0,0.4); }
+
+/* THEME 4 — TÍM HỒNG */
+.theme-4 {
+    background: linear-gradient(180deg, #ff00ff, #6600ff);
+}
+.theme-4 .qr-box { background: rgba(255,255,255,0.15); }
+
+/* THEME 5 — ĐỎ ĐEN */
+.theme-5 {
+    background: linear-gradient(180deg, #ff0000, #111);
+}
+.theme-5 .qr-box { background: rgba(255,255,255,0.1); }
+
 </style>
 </head>
-<body>
+<body class="theme-1">
 
 <div class="wrap">
 
+    <!-- Chọn theme -->
+    <div class="theme-bar">
+        <div class="theme-dot active" onclick="setTheme(1)" style="background:#ff7a00;"></div>
+        <div class="theme-dot" onclick="setTheme(2)" style="background:#0099ff;"></div>
+        <div class="theme-dot" onclick="setTheme(3)" style="background:#00ff99;"></div>
+        <div class="theme-dot" onclick="setTheme(4)" style="background:#ff00ff;"></div>
+        <div class="theme-dot" onclick="setTheme(5)" style="background:#ff0000;"></div>
+    </div>
+
     <div class="label">Chọn người nhận</div>
-    <select id="receiver" onchange="renderBanks(); updateQR();">
-    </select>
+    <select id="receiver" onchange="renderBanks(); updateQR();"></select>
 
     <div class="label">Chọn ngân hàng</div>
     <div id="bankLogos" class="bank-grid"></div>
@@ -97,14 +163,12 @@ input, select {
         <div id="accName"></div>
         <div id="money"></div>
     </div>
-
 </div>
 
 <script>
-/* ============================= */
-/* 1. Danh sách tài khoản        */
-/* ============================= */
-
+/* ================================================================= */
+/* 1. DỮ LIỆU TÀI KHOẢN                                              */
+/* ================================================================= */
 const data = {
     "NGUYEN VAN DIEN": [
         ["TCB","2255992888"],
@@ -131,37 +195,25 @@ const data = {
         ["VCB","1015772918"]
     ],
     "NGUYEN VAN THAO": [
-        ["TPB","00083062001"]
+        ["VTB","00083062001"]
     ]
 };
 
-/* Mã ngân hàng VietQR */
+/* Mã VietQR */
 const bankCode = {
-    "VCB":"970436", "TCB":"970407", "MB":"970422", "BIDV":"970418", "AGR":"970405",
-    "MSB":"970426", "TPB":"970423", "LPB":"970449", "VTB":"970415", "OCB":"970448",
-    "VIB":"970441", "VPB":"970432", "SGB":"970400"
+    "VCB":"970436","TCB":"970407","MB":"970422","BIDV":"970418","AGR":"970405",
+    "MSB":"970426","TPB":"970423","LPB":"970449","VTB":"970415","OCB":"970448",
+    "VIB":"970441","VPB":"970432","SGB":"970400"
 };
 
-/* Logo ngân hàng */
-const bankLogo = {
-    "VCB":"https://img.vietqr.io/image/VCB.png",
-    "TCB":"https://img.vietqr.io/image/TCB.png",
-    "MB":"https://img.vietqr.io/image/MB.png",
-    "BIDV":"https://img.vietqr.io/image/BIDV.png",
-    "AGR":"https://img.vietqr.io/image/AGR.png",
-    "MSB":"https://img.vietqr.io/image/MSB.png",
-    "TPB":"https://img.vietqr.io/image/TPB.png",
-    "LPB":"https://img.vietqr.io/image/LPB.png",
-    "VTB":"https://img.vietqr.io/image/VTB.png",
-    "OCB":"https://img.vietqr.io/image/OCB.png",
-    "VIB":"https://img.vietqr.io/image/VIB.png",
-    "VPB":"https://img.vietqr.io/image/VPB.png",
-    "SGB":"https://img.vietqr.io/image/SGB.png"
-};
-
+/* Logo ngân hàng (CDN chuẩn nhất) */
+const bankLogo = {};
+for (let b in bankCode) {
+    bankLogo[b] = `https://img.vietqr.io/image/${b}.png`;
+}
 
 /* Render danh sách người nhận */
-let recvSelect = document.getElementById("receiver");
+const recvSelect = document.getElementById("receiver");
 Object.keys(data).forEach(name => {
     let o = document.createElement("option");
     o.value = name;
@@ -171,11 +223,12 @@ Object.keys(data).forEach(name => {
 
 let selectedBank = null;
 
-/* Render logo ngân hàng theo người nhận */
+/* ================================================================= */
+/* RENDER LOGO NGÂN HÀNG                                             */
+/* ================================================================= */
 function renderBanks() {
     let r = receiver.value;
     let list = data[r];
-
     let box = document.getElementById("bankLogos");
     box.innerHTML = "";
 
@@ -185,10 +238,10 @@ function renderBanks() {
         div.setAttribute("data-bank", bank);
         div.setAttribute("data-acc", acc);
 
-        div.innerHTML = `<img src="${bankLogo[bank]}">`;
+        div.innerHTML = `<img src="${bankLogo[bank]}" alt="${bank}">`;
 
         div.onclick = function () {
-            document.querySelectorAll(".bank-item").forEach(i=>i.classList.remove("active"));
+            document.querySelectorAll(".bank-item").forEach(i => i.classList.remove("active"));
             this.classList.add("active");
             selectedBank = [bank, acc];
             updateQR();
@@ -198,7 +251,11 @@ function renderBanks() {
     });
 }
 
-/* Generate QR */
+renderBanks();
+
+/* ================================================================= */
+/* GENERATE QR                                                       */
+/* ================================================================= */
 function updateQR() {
     if (!selectedBank) return;
 
@@ -217,8 +274,14 @@ function updateQR() {
     money.innerText = amt ? amt + " đ" : "";
 }
 
-/* Khởi tạo */
-renderBanks();
+/* ================================================================= */
+/* THEME SWITCH                                                      */
+/* ================================================================= */
+function setTheme(n) {
+    document.body.className = `theme-${n}`;
+    document.querySelectorAll(".theme-dot").forEach(e => e.classList.remove("active"));
+    document.querySelectorAll(".theme-dot")[n-1].classList.add("active");
+}
 </script>
 
 </body>
