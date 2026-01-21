@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Thanh toán VietQR</title>
+<style>
+body {
+    margin: 0;
+    background: linear-gradient(180deg, #ff7a00, #000);
+    font-family: Arial, sans-serif;
+    color: white;
+}
+
+/* container */
+.wrap {
+    max-width: 480px;
+    margin: 20px auto;
+    padding: 20px;
+}
+
+/* label */
+.label {
+    margin: 15px 0 5px;
+    font-weight: bold;
+}
+
+/* input */
+input, select {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    border: none;
+    font-size: 17px;
+}
+
+/* Bank logo grid */
+.bank-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.bank-item {
+    background: rgba(255,255,255,0.1);
+    border: 2px solid transparent;
+    padding: 8px;
+    border-radius: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+.bank-item img {
+    width: 42px;
+    height: 42px;
+}
+
+.bank-item.active {
+    border-color: #ff8c1a;
+    background: rgba(255,255,255,0.25);
+}
+
+/* QR Box */
+.qr-box {
+    margin-top: 25px;
+    background: rgba(255,255,255,0.1);
+    padding: 20px;
+    border-radius: 16px;
+    text-align: center;
+}
+.qr-box img {
+    width: 240px;
+    background: white;
+    border-radius: 12px;
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+    <div class="label">Chọn người nhận</div>
+    <select id="receiver" onchange="renderBanks(); updateQR();">
+    </select>
+
+    <div class="label">Chọn ngân hàng</div>
+    <div id="bankLogos" class="bank-grid"></div>
+
+    <div class="label">Nhập số tiền</div>
+    <input id="amount" type="number" placeholder="Nhập số tiền" oninput="updateQR()">
+
+    <div class="qr-box">
+        <img id="qrImg">
+        <div id="bankName"></div>
+        <div id="accNumber"></div>
+        <div id="accName"></div>
+        <div id="money"></div>
+    </div>
+
+</div>
+
+<script>
+/* ============================= */
+/* 1. Danh sách tài khoản        */
+/* ============================= */
+
+const data = {
+    "NGUYEN VAN DIEN": [
+        ["TCB","2255992888"],
+        ["TCB","255255992888"],
+        ["MB","255255992888"],
+        ["MB","123456789"],
+        ["BIDV","8815369595"],
+        ["AGR","3180205507882"],
+        ["AGR","8888858925890"],
+        ["MSB","9221111990"],
+        ["TPB","25525599288"],
+        ["LPB","123456789"],
+        ["VTB","109005208772"],
+        ["OCB","25892859"],
+        ["VIB","925890"],
+        ["VPB","0858925890"],
+        ["SGB","020586422589"]
+    ],
+    "PHAM THI THEU": [
+        ["VTB","105005039408"],
+        ["TCB","55228882999"]
+    ],
+    "NGUYEN THI NGUYET": [
+        ["VCB","1015772918"]
+    ],
+    "NGUYEN VAN THAO": [
+        ["TPB","00083062001"]
+    ]
+};
+
+/* Mã ngân hàng VietQR */
+const bankCode = {
+    "VCB":"970436", "TCB":"970407", "MB":"970422", "BIDV":"970418", "AGR":"970405",
+    "MSB":"970426", "TPB":"970423", "LPB":"970449", "VTB":"970415", "OCB":"970448",
+    "VIB":"970441", "VPB":"970432", "SGB":"970400"
+};
+
+/* Logo ngân hàng */
+const bankLogo = {
+    "VCB":"https://img.vietqr.io/image/VCB.png",
+    "TCB":"https://img.vietqr.io/image/TCB.png",
+    "MB":"https://img.vietqr.io/image/MB.png",
+    "BIDV":"https://img.vietqr.io/image/BIDV.png",
+    "AGR":"https://img.vietqr.io/image/AGR.png",
+    "MSB":"https://img.vietqr.io/image/MSB.png",
+    "TPB":"https://img.vietqr.io/image/TPB.png",
+    "LPB":"https://img.vietqr.io/image/LPB.png",
+    "VTB":"https://img.vietqr.io/image/VTB.png",
+    "OCB":"https://img.vietqr.io/image/OCB.png",
+    "VIB":"https://img.vietqr.io/image/VIB.png",
+    "VPB":"https://img.vietqr.io/image/VPB.png",
+    "SGB":"https://img.vietqr.io/image/SGB.png"
+};
+
+
+/* Render danh sách người nhận */
+let recvSelect = document.getElementById("receiver");
+Object.keys(data).forEach(name => {
+    let o = document.createElement("option");
+    o.value = name;
+    o.textContent = name;
+    recvSelect.appendChild(o);
+});
+
+let selectedBank = null;
+
+/* Render logo ngân hàng theo người nhận */
+function renderBanks() {
+    let r = receiver.value;
+    let list = data[r];
+
+    let box = document.getElementById("bankLogos");
+    box.innerHTML = "";
+
+    list.forEach(([bank, acc]) => {
+        let div = document.createElement("div");
+        div.className = "bank-item";
+        div.setAttribute("data-bank", bank);
+        div.setAttribute("data-acc", acc);
+
+        div.innerHTML = `<img src="${bankLogo[bank]}">`;
+
+        div.onclick = function () {
+            document.querySelectorAll(".bank-item").forEach(i=>i.classList.remove("active"));
+            this.classList.add("active");
+            selectedBank = [bank, acc];
+            updateQR();
+        };
+
+        box.appendChild(div);
+    });
+}
+
+/* Generate QR */
+function updateQR() {
+    if (!selectedBank) return;
+
+    let [bank, acc] = selectedBank;
+    let amt = document.getElementById("amount").value;
+    let r = receiver.value;
+
+    let info = encodeURIComponent(r + " chuyen tien");
+
+    let api = `https://img.vietqr.io/image/${bankCode[bank]}-${acc}-compact.png?amount=${amt}&addInfo=${info}`;
+
+    document.getElementById("qrImg").src = api;
+    bankName.innerText = bank;
+    accNumber.innerText = acc;
+    accName.innerText = r;
+    money.innerText = amt ? amt + " đ" : "";
+}
+
+/* Khởi tạo */
+renderBanks();
+</script>
+
+</body>
+</html>
