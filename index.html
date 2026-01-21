@@ -75,43 +75,44 @@ input, select {
     outline: none;
 }
 
-/* BANK GRID */
+/* BANK GRID MINI MODE */
 .bank-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(6, 1fr); /* 6 logo 1 hàng */
+    gap: 8px;
+    margin: 12px 0;
+}
+
+.bank-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
     gap: 10px;
-    margin: 15px 0;
 }
 
 .bank-item {
-    background: var(--card);
-    border: 1.5px solid transparent;
-    padding: 10px;
-    text-align: center;
+    background: rgba(255,255,255,0.12);
     border-radius: 12px;
-    cursor: pointer;
-    transition: .2s;
-    height: 110px;               /* Giảm chiều cao (tối ưu) */
+    border: 1px solid transparent;
+    height: 62px;  /* tối ưu cho mobile */
+    padding: 4px;
     display: flex;
-    flex-direction: column;
     justify-content: center;
-}
-
-.bank-item img {
-    width: 55px;                 /* Logo nhỏ hơn nhưng vẫn rõ */
-    height: 55px;
-    object-fit: contain;
-}
-
-.bank-id {
-    margin-top: 4px;
-    font-size: 13px;             /* Chữ nhỏ gọn */
+    align-items: center;
 }
 
 .bank-item.active {
-    border-color: var(--border-active);
-    background: rgba(255,255,255,0.28);
+    border-color: white;
 }
+
+.bank-item img {
+    height: 90%;          /* CHO LOGO TỐI ĐA 90% KHUNG */
+    width: auto;
+    object-fit: contain;  /* đảm bảo không méo */
+    display: block;
+}
+
+
+
 
 /* QR BOX */
 .qr-box {
@@ -244,10 +245,9 @@ function renderBanks() {
         let div = document.createElement("div");
         div.className = "bank-item";
 
-        div.innerHTML = `
-            <img src="${bankLogo[bank]}" onerror="this.src='https://api.vietqr.io/img/default.png'">
-            <div class="bank-id">${bank} • ${bankCode[bank]}</div>
-        `;
+        div.innerHTML = `<img src="${bankLogo[bank]}" alt="${bank}">`;
+
+
 
         div.onclick = function() {
             document.querySelectorAll(".bank-item").forEach(i=>i.classList.remove("active"));
