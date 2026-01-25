@@ -280,7 +280,7 @@ function updateQR(){
     let r = receiver.value;
 
     // MẶC ĐỊNH NỘI DUNG
-    let info = encodeURIComponent(r + " chuyen tien");
+    let info = encodeURIComponent(" chuyen tien" + r);
 
     let url =
         `https://img.vietqr.io/image/${bankCode[bank]}-${acc}-compact.png?amount=${rawAmount}&addInfo=${info}`;
@@ -297,3 +297,4 @@ renderBanks();
 
 </body>
 </html>
+
