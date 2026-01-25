@@ -281,7 +281,8 @@ function updateQR(){
     let r = receiver.value;
 
     // ==== SỬA TẠI ĐÂY ====
-    let info = encodeURIComponent("Chuyen tien");
+   let r = receiver.value;
+let info = encodeURIComponent(r + " chuyen tien");
     // ======================
 
     let url =
@@ -299,5 +300,6 @@ renderBanks();
 
 </body>
 </html>
+
 
 
