@@ -278,7 +278,11 @@ function updateQR(){
     let rawAmount = amount.value.replace(/,/g,"");
     let formatted = formatMoney(rawAmount);
 
+    let r = receiver.value;
+
+    // ==== SỬA TẠI ĐÂY ====
     let info = encodeURIComponent("Chuyen tien");
+    // ======================
 
     let url =
         `https://img.vietqr.io/image/${bankCode[bank]}-${acc}-compact.png?amount=${rawAmount}&addInfo=${info}`;
@@ -295,4 +299,5 @@ renderBanks();
 
 </body>
 </html>
+
 
